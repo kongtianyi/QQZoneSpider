@@ -5,15 +5,31 @@ import time
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
+def handle_text(text, file_name):
+    with open(file_name, 'a') as f:
+        text += """
+
+——————————————
+
+"""
+        f.write(text)
+
 
 class seleniumTest(unittest.TestCase):
-    user = 'xxxxxxxx'  # 你的QQ号
-    pw = 'xxxxxx'  # 你的QQ密码
+    user = ''  # 你的QQ号
+    pw = ''  # 你的QQ密码
 
     def setUp(self):
         # 调试的时候用firefox比较直观
         # self.driver = webdriver.PhantomJS()
-        self.driver = webdriver.Firefox()
+        try:
+            self.driver = webdriver.Firefox()
+        except Exception as e:
+            print(e)
+            try:
+                self.driver = webdriver.Chrome()
+            except Exception as e:
+                print(e)
 
     def testEle(self):
         driver = self.driver
@@ -39,8 +55,8 @@ class seleniumTest(unittest.TestCase):
         # 再执行下列操作。
         r = ''
         while r != 'y':
-            print "Login seccessful?[y]"
-            r = raw_input()
+            print("Login seccessful?[y]")
+            r = input()
 
         # 让webdriver操纵当前页
         driver.switch_to.default_content()
@@ -68,7 +84,13 @@ class seleniumTest(unittest.TestCase):
             contents = soup.find_all('pre', {'class': 'content'})  # 内容
             times = soup.find_all('a', {'class': 'c_tx c_tx3 goDetail'})  # 发表时间
             for content, _time in zip(contents, times):  # 这里_time的下划线是为了与time模块区分开
-                print content.get_text(), _time.get_text()
+                that_moment = _time.get_text()
+                text = content.get_text()
+                all_ = that_moment + '\n'*3 + text
+                print(that_moment, '\n', text, '\n'*2)
+
+                handle_text(all_, 'QQZoneSayingWithTime.txt')
+                handle_text(text, 'QQZoneSaying.txt')
             # 当已经到了尾页，“下一页”这个按钮就没有id了，可以结束了
             if driver.page_source.find('pager_next_' + str(next_num)) == -1:
                 break
@@ -82,7 +104,7 @@ class seleniumTest(unittest.TestCase):
             driver.switch_to.parent_frame()
 
     def tearDown(self):
-        print 'down'
+        print('down')
 
 if __name__ == "__main__":
     unittest.main()
